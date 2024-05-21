@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="web.info.repository.MemberRepository">
+  
+  	<resultMap type="memberVO" id="memberMap">
+  		<id property="memberId" column="memberId"/>
+  		<result property="memberId" column="memberId"/>
+  		<result property="memberPwd" column="memberPwd"/>
+  		<result property="memberName" column="memberName"/>
+  		<result property="email" column="email"/>
+  		<result property="enabled" column="enabled"/>
+  		<result property="regDate" column="regDate"/>
+  		<result property="updateDate" column="updateDate"/>
+  		<collection property="authList" resultMap="authMap"></collection>
+  	</resultMap>
+  	
+  	<resultMap type="authVO" id="authMap">
+  		<result property="memberId" column="memberId"/>
+  		<result property="auth" column="auth"/>
+  	</resultMap>
+  
+	<select id="read" resultMap="memberMap">
+		select 
+		    m.memberId, memberPwd, memberName,email, enabled, 
+		    regDate, updateDate, a.auth
+		from tbl_member m left outer join tbl_member_auth a
+		on m.memberId = a.memberId
+		where m.memberId = #{memberId}
+	</select>
+	
+	<insert id="insert">
+		insert into tbl_member(memberId,memberPwd,memberName,email)
+		values(#{memberId},#{memberPwd},#{memberName},#{email})
+	</insert>
+	
+	<select id="selectById" resultType="memberVO">
+		select memberId, memberPwd,memberName, email
+		from tbl_member where memberId=#{memberId}
+	</select>
+	
+	<update id="update">
+		update tbl_member set
+			memberName = #{memberName}, 
+			email = #{email}
+		where memberId = #{memberId}
+	</update>
+	
+	<update id="updatePassword">
+		update tbl_member set
+			memberPwd = #{memberPwd} 
+		where memberId = #{memberId}
+	</update>
+	
+	<select id="selectByEmail" resultType="string">
+		select memberId from tbl_member where email=#{email}
+	</select>
+	
+</mapper>

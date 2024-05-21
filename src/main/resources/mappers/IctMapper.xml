@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="web.info.repository.IctRepository">
+
+	    <resultMap id="IctResultMap" type="web.info.domain.IctVO">
+	    <id property="ino" column="ino"/>
+	    <result property="title" column="title"/>
+	    <result property="content" column="content"/>
+	    <result property="writer" column="writer"/>
+	    <!-- 이미지 리스트 매핑 -->
+	    <collection property="imageList" ofType="web.info.domain.ImageVO" columnPrefix="img_">
+	        <id property="uuid" column="img_uuid"/>
+	        <result property="uploadPath" column="img_upload_path"/>
+	        <result property="fileName" column="img_file_name"/>
+	    </collection>
+	</resultMap>
+	
+	<select id="selectIctList" resultMap="IctResultMap">
+	    SELECT 
+	        ict.ino,
+	        ict.title,
+	        ict.content,
+	        ict.writer,
+	        img.uuid as img_uuid,
+	        img.upload_path as img_upload_path,
+	        img.file_name as img_file_name
+	    FROM ict
+	    LEFT JOIN image img ON ict.ino = img.ino
+	</select>
+    
+    <insert id="insert">
+        insert into tbl_ict(ino,title,content,writer)
+        values (seq_ict.nextval,#{title},#{content},#{writer})
+    </insert>
+    <insert id="insertSelectKey" keyColumn="ino" keyProperty="ino" useGeneratedKeys="true">
+  	    insert into tbl_ict(ino,title,content,writer)
+    	values (seq_ict.nextval,#{title},#{content},#{writer})
+    </insert>
+    
+    <select id="read" resultType="web.info.domain.IctVO">
+        select * from tbl_ict where ino = #{ino}
+    </select>
+    
+    <delete id="delete">
+        delete from tbl_ict where ino = #{ino}
+    </delete>
+    
+    <update id="update">
+        update tbl_ict
+        set title = #{title},
+            content = #{content},
+            writer = #{writer},
+            updateDate = sysdate
+        where ino = #{ino}
+    </update>
+    
+    <select id="getList" resultMap="IctResultMap">
+	 <![CDATA[ 
+	  	select * from 
+		(select /*+INDEX_DESC(tbl_ict pk_board)*/  
+	  		ROWNUM as rn, INO, TITLE, CONTENT, WRITER, regDate, updateDate 
+	  		FROM tbl_ict where rownum <= #{maxRow}) 
+		where rn > #{minRow}
+	]]>
+	</select>
+	
+	<select id="getTotalCount" resultType="int">
+    	select count(ino) from tbl_ict
+	</select>
+</mapper>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="web.info.repository.BoardRepository">
+	<sql id="criteria">
+	    <trim prefix="(" suffix=") AND " prefixOverrides="OR">
+	    	<foreach collection="types" item="type">
+	    		<trim prefix="OR">
+	    			<choose>
+	    				<when test="type=='T'.toString()">
+	    					TITLE like '%'||#{keyword}||'%'
+	    				</when>
+	    				<when test="type=='C'.toString()">
+	    					CONTENT like '%'||#{keyword}||'%'
+	    				</when>
+	    				<when test="type=='W'.toString()">
+	    					WRITER like '%'||#{keyword}||'%'
+	    				</when>	    				
+	    			</choose>
+	    		</trim>
+	    	</foreach>
+	    </trim>
+	</sql>
+	
+   <select id="getList" resultType="board" >
+    <![CDATA[ 
+   	select * from 
+	(
+		select /*+INDEX_DESC(tbl_board pk_board)*/  
+    		ROWNUM as rn, BNO, TITLE, CONTENT, WRITER, replyCnt ,regDate, updateDate 
+    		FROM tbl_board where
+    ]]>
+	<include refid="criteria"/> 	
+    <![CDATA[
+ 	rownum <= #{maxRow}
+	    ) where rn > #{minRow} 
+	]]>
+   </select>
+    
+    <select id="getTotalCount" resultType="int">
+    	select count(bno) from tbl_board where
+    	<include refid="criteria"/>
+    	bno > 0
+    </select>
+    	
+    <insert id="insert">
+    	insert into tbl_board(bno,title,content,writer)
+    	values (seq_board.nextval,#{title},#{content},#{writer})
+    </insert>
+    <!-- 
+    <insert id="insertSelectKey">
+    	<selectKey keyProperty="bno" order="BEFORE" resultType="long">
+    		select seq_board.nextval from dual
+    	</selectKey>
+  	    insert into tbl_board(bno,title,content,writer)
+    	values (#{bno},#{title},#{content},#{writer})
+    </insert>
+    -->
+   	<insert id="insertSelectKey" keyColumn="bno" keyProperty="bno" useGeneratedKeys="true">
+  	    insert into tbl_board(bno,title,content,writer)
+    	values (seq_board.nextval,#{title},#{content},#{writer})
+    </insert>
+    
+    <select id="read" resultType="board">
+    	select * from tbl_board where bno=#{bno}
+    </select>
+    
+    <delete id="delete">
+    	delete from tbl_board where bno=#{bno}
+    </delete>
+    
+    <update id="update">
+    	update tbl_board set
+    	title=#{title},
+    	content=#{content},
+    	writer=#{writer},
+    	updateDate = sysdate
+    	where bno=#{bno}
+    </update>
+    
+    <update id="updateReplyCnt">
+    	update tbl_board set replyCnt = replyCnt + #{amount} where bno = #{bno}
+    </update>
+    
+    <update id="updateLikeCnt">
+		update tbl_board set likeHit = likeHit + #{amount} where bno = #{bno}
+	</update>
+</mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="web.info.repository.IctAttachRepository">
+  
+    <insert id="insert">
+		insert into tbl_ictattach(uuid,uploadPath,fileName,fileType,ino)
+		values (#{uuid}, #{uploadPath}, #{fileName},#{fileType},#{ino})
+	</insert>
+
+	<delete id="delete">
+		delete from tbl_ictattach where uuid=#{uuid}
+	</delete>
+	
+	<select id="selectByIno" resultType="ictAttachVO">
+		select * from tbl_ictattach where ino = #{ino}
+	</select>
+    
+    <select id="selectByUuid" resultType="ictAttachVO">
+		select * from tbl_ictattach where uuid = #{uuid}
+	</select>
+	
+	<select id="pastFiles" resultType="ictAttachVO">
+		select * from tbl_ictattach where uploadPath = to_char(sysdate-1,'yyyy/MM/dd') 
+	</select>
+</mapper>
